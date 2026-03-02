@@ -2,19 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { GlassCard } from "@/components/ui/glass-card";
 
 export function AuthFormShell({
   mode,
+  next,
   children
 }: {
   mode: "login" | "signup";
+  next?: string;
   children: React.ReactNode;
 }) {
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next");
-
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 items-center justify-center pb-10 pt-4">
       <GlassCard className="w-full p-6 sm:p-7">
