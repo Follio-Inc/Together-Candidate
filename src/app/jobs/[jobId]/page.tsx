@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { jobs, calculateFitScore } from "@/lib/mock-data";
@@ -12,6 +12,7 @@ import { TextArea } from "@/components/ui/input";
 import { FitScoreRing, FitScoreBar } from "@/components/ui/fit-score";
 import { SkillTag } from "@/components/ui/skill-tag";
 import { formatSalary, formatRelativeDate, formatDate } from "@/lib/utils";
+import type { Job } from "@/lib/types";
 import {
   MapPin,
   Building2,
@@ -41,8 +42,35 @@ export default function JobDetailPage({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedScore, setSubmittedScore] = useState<number | null>(null);
+  const [fetchedJob, setFetchedJob] = useState<Job | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const job = jobs.find((j) => j.id === jobId);
+  const localJob = jobs.find((j) => j.id === jobId);
+
+  useEffect(() => {
+    if (!localJob) {
+      setLoading(true);
+      fetch(`/api/jobs/${jobId}`)
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.success && res.data) {
+            setFetchedJob(res.data);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [jobId, localJob]);
+
+  const job = localJob ?? fetchedJob;
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+        <p className="text-lg text-stone-500">Loading job details...</p>
+      </div>
+    );
+  }
 
   if (!job) {
     return (

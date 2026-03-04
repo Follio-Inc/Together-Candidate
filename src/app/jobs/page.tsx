@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { jobs } from "@/lib/mock-data";
+import { useState, useMemo, useEffect } from "react";
+import { jobs as mockJobs } from "@/lib/mock-data";
 import { JobCard } from "@/components/jobs/job-card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { RoleType, LocationType, ExperienceLevel } from "@/lib/types";
+import type { Job, RoleType, LocationType, ExperienceLevel } from "@/lib/types";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 
 const roleFilters: { value: RoleType | "all"; label: string }[] = [
@@ -39,9 +39,21 @@ export default function JobsPage() {
   const [locationType, setLocationType] = useState<LocationType | "all">("all");
   const [seniority, setSeniority] = useState<ExperienceLevel | "all">("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [allJobs, setAllJobs] = useState<Job[]>(mockJobs);
+
+  useEffect(() => {
+    fetch("/api/jobs")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setAllJobs(res.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
-    let result = jobs.filter((j) => j.isActive);
+    let result = allJobs.filter((j) => j.isActive);
 
     if (search) {
       const q = search.toLowerCase();
@@ -63,7 +75,7 @@ export default function JobsPage() {
     }
 
     return result;
-  }, [search, roleType, locationType, seniority]);
+  }, [search, roleType, locationType, seniority, allJobs]);
 
   const activeFilterCount =
     (roleType !== "all" ? 1 : 0) +
